@@ -168,7 +168,7 @@ namespace FilterDataGrid
                         { Local.Chinese, "{0:n0} 找到了 {1:n0} 条记录" },
                         { Local.Dutch,   "{0:n0} rij(en) gevonden op {1:n0}" },
                         { Local.English, "{0:n0} record(s) found on {1:n0}" },
-                        { Local.EnglishGB, "{0:n0} record(s) found on {1:n0}" },
+                        { Local.EnglishGB, "Showing {0:n0} record(s) of {1:n0}" },
                         { Local.French,  "{0:n0} enregistrement(s) trouvé(s) sur {1:n0}" },
                         { Local.German,  "{0:n0} zeilen angezeigt von {1:n0}" },
                         { Local.Italian, "{0:n0} oggetti trovati su {1:n0}" },

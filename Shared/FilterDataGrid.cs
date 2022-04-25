@@ -12,6 +12,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -265,7 +266,12 @@ namespace FilterDataGrid
         /// <summary>
         ///     Display items count
         /// </summary>
-        public int ItemsSourceCount { get; set; }
+        public int ItemsSourceCount
+        {
+            get => _itemsSourceCount;
+            set { _itemsSourceCount = value; OnPropertyChanged(nameof(ItemsSourceCount)); }
+        }
+        private int _itemsSourceCount;
 
         /// <summary>
         ///     Show elapsed time in status bar
@@ -382,12 +388,15 @@ namespace FilterDataGrid
             {
                 IColumn column = null;
                 Type colType = e.Column.GetType();
-                
+
                 if (colType == typeof(System.Windows.Controls.DataGridTextColumn))
                     column = new DataGridTextColumn();
 
                 else if (colType == typeof(System.Windows.Controls.DataGridComboBoxColumn))
-                    column = new DataGridComboBoxColumn();
+                    column = new DataGridComboBoxColumn()
+                    {
+                        ItemsSource = ((System.Windows.Controls.DataGridComboBoxColumn)e.Column).ItemsSource
+                    };
 
                 else
                     return;
@@ -454,7 +463,6 @@ namespace FilterDataGrid
 
                 ItemsSourceCount = Items.Count;
                 ElapsedTime = new TimeSpan(0, 0, 0);
-                OnPropertyChanged("ItemsSourceCount");
 
                 // Calculate row header width
                 if (ShowRowsCount)
@@ -489,6 +497,16 @@ namespace FilterDataGrid
                 Debug.WriteLine($"FilterDataGrid.OnItemsSourceChanged : {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Update the <seealso cref="ItemsSourceCount"/> when the collection of items changes
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnItemsChanged(NotifyCollectionChangedEventArgs e)
+        {
+            base.OnItemsChanged(e);
+            ItemsSourceCount = Items.Count;
         }
 
         /// <summary>
