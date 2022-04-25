@@ -123,7 +123,7 @@ namespace FilterDataGrid
             DependencyProperty.Register("FilterLanguage",
                 typeof(Local),
                 typeof(FilterDataGrid),
-                new PropertyMetadata(Local.English));
+                new PropertyMetadata(Local.English, OnFilterLanguageChange));
 
         /// <summary>
         ///     Show elapsed time in status bar
@@ -505,6 +505,22 @@ namespace FilterDataGrid
         #endregion Protected Methods
 
         #region Private Methods
+
+        private static void OnFilterLanguageChange(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            FilterDataGrid grid = d as FilterDataGrid;
+            if (grid == null)
+                return;
+            Local newVal = (Local)e.NewValue;
+
+            //update the culture
+            grid.Translate.Language = newVal;
+
+            //now update all the bindings to use the new culture
+            foreach (DataGridBoundColumn col in grid.Columns.OfType<DataGridBoundColumn>())
+                if (col.Binding is Binding colBinding)
+                    colBinding.ConverterCulture = grid.Translate.Culture;
+        }
 
         /// <summary>
         ///     Handle Mousedown, contribution : WORDIBOI
