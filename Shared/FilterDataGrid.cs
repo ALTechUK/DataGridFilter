@@ -197,7 +197,7 @@ namespace FilterDataGrid
         private Type fieldType;
 
         private bool startsWith;
-        private object currentColumn;
+        private IColumn currentColumn;
 
         private readonly Dictionary<string, Predicate<object>> criteria = new Dictionary<string, Predicate<object>>();
         private readonly StringComparison ordinalIgnoreCase = StringComparison.OrdinalIgnoreCase;
@@ -380,22 +380,31 @@ namespace FilterDataGrid
 
             try
             {
-                if (e.Column.GetType() != typeof(System.Windows.Controls.DataGridTextColumn)) return;
+                IColumn column = null;
+                Type colType = e.Column.GetType();
+                
+                if (colType == typeof(System.Windows.Controls.DataGridTextColumn))
+                    column = new DataGridTextColumn();
 
-                var column = new DataGridTextColumn
-                {
-                    Binding = new Binding(e.PropertyName) { ConverterCulture = Translate.Culture /* StringFormat */ },
-                    FieldName = e.PropertyName,
-                    Header = e.Column.Header.ToString(),
-                    IsColumnFiltered = false
-                };
+                else if (colType == typeof(System.Windows.Controls.DataGridComboBoxColumn))
+                    column = new DataGridComboBoxColumn();
+
+                else
+                    return;
+
+                column.FieldName = e.PropertyName;
+                column.Header = e.Column.Header.ToString();
+                column.IsColumnFiltered = false;
 
                 // get type
                 fieldType = Nullable.GetUnderlyingType(e.PropertyType) ?? e.PropertyType;
 
+                string bindingStringFormat = null;
                 // apply the format string provided
                 if (fieldType == typeof(DateTime) && !string.IsNullOrEmpty(DateFormatString))
-                    column.Binding.StringFormat = DateFormatString;
+                    bindingStringFormat = DateFormatString;
+
+                column.SetBinding(e.PropertyName, Translate.Culture, bindingStringFormat);
 
                 // add DataGridHeaderTemplate template if not excluded
                 if (excludedFields?.FindIndex(c =>
@@ -405,7 +414,7 @@ namespace FilterDataGrid
                     column.IsColumnFiltered = true;
                 }
 
-                e.Column = column;
+                e.Column = (DataGridColumn) column;
             }
             catch (Exception ex)
             {
@@ -538,8 +547,7 @@ namespace FilterDataGrid
             {
                 // get the columns that can be filtered
                 var columns = Columns
-                    .Where(c => c is DataGridTextColumn dtx && dtx.IsColumnFiltered ||
-                                c is DataGridTemplateColumn dtp && dtp.IsColumnFiltered)
+                    .Where(c => c is IColumn col && col.IsColumnFiltered)
                     .Select(c => c)
                     .ToList();
 
@@ -557,40 +565,32 @@ namespace FilterDataGrid
                     }
                     else
                     {
-                        if (columnType == typeof(DataGridTextColumn))
-                        {
-                            var column = (DataGridTextColumn)col;
+                        IColumn iCol = (IColumn)col;
 
-                            // template
-                            column.HeaderTemplate = (DataTemplate)TryFindResource("DataGridHeaderTemplate");
+                        //tempalte
+                        iCol.HeaderTemplate = (DataTemplate)TryFindResource("DataGridHeaderTemplate");
 
-                            fieldType = null;
-                            var fieldProperty = collectionType.GetProperty(((Binding)column.Binding).Path.Path);
+                        string bindingPath = iCol.TryGetBindingPath();
+                        if (bindingPath == null)
+                            return;
 
-                            // get type or underlying type if nullable
-                            if (fieldProperty != null)
-                                fieldType = Nullable.GetUnderlyingType(fieldProperty.PropertyType) ??
+                        var fieldProperty = collectionType.GetProperty(bindingPath);
+
+                        // get type or underlying type if nullable
+                        if (fieldProperty != null)
+                            fieldType = Nullable.GetUnderlyingType(fieldProperty.PropertyType) ??
                                             fieldProperty.PropertyType;
 
-                            // apply DateFormatString when StringFormat for column is not provided or empty
-                            if (fieldType == typeof(DateTime) && !string.IsNullOrEmpty(DateFormatString))
-                                if (string.IsNullOrEmpty(column.Binding.StringFormat))
-                                    column.Binding.StringFormat = DateFormatString;
+                        // apply DateFormatString when StringFormat for column is not provided or empty
+                        if (fieldType == typeof(DateTime) && !string.IsNullOrEmpty(DateFormatString))
+                            if (string.IsNullOrEmpty(iCol.BindingStringFormat))
+                                iCol.BindingStringFormat = DateFormatString;
 
-                            // culture
-                            if (((Binding)column.Binding).ConverterCulture == null)
-                                ((Binding)column.Binding).ConverterCulture = Translate.Culture;
+                        // culture
+                        if (iCol.BindingConverterCulture == null)
+                            iCol.BindingConverterCulture = Translate.Culture;
 
-                            column.FieldName = ((Binding)column.Binding).Path.Path;
-                        }
-                        else if (columnType == typeof(DataGridTemplateColumn))
-                        {
-                            // DataGridTemplateColumn has no culture property
-                            var column = (DataGridTemplateColumn)col;
-
-                            // template
-                            column.HeaderTemplate = (DataTemplate)TryFindResource("DataGridHeaderTemplate");
-                        }
+                        iCol.FieldName = bindingPath;
                     }
                 }
             }
@@ -1018,21 +1018,13 @@ namespace FilterDataGrid
                 thumb.DragDelta += OnResizeThumbDragDelta;
                 thumb.DragStarted += OnResizeThumbDragStarted;
 
+                IColumn column = header.Column as IColumn;
                 // get field name from binding Path
-                if (columnType == typeof(DataGridTextColumn))
+                if(column != null)
                 {
-                    var column = (DataGridTextColumn)header.Column;
                     fieldName = column.FieldName;
-                    column.CanUserSort = false;
                     currentColumn = column;
-                }
-
-                if (columnType == typeof(DataGridTemplateColumn))
-                {
-                    var column = (DataGridTemplateColumn)header.Column;
-                    fieldName = column.FieldName;
                     column.CanUserSort = false;
-                    currentColumn = column;
                 }
 
                 // invalid fieldName
