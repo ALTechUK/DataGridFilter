@@ -367,7 +367,6 @@ FodyWeavers.xsd
 # NuGet package file
 *.nuspec
 *.nupkg
-icon.png
 nuget/
 
 # Batch construct file
