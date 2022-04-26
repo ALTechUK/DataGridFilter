@@ -373,3 +373,8 @@ nuget/
 # Batch construct file
 *.bat
 *.exe
+
+# Remainder files
+Reliquats.txt
+
+.idea

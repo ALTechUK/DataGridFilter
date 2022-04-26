@@ -16,12 +16,31 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable AssignNullToNotNullAttribute
 // ReSharper disable CheckNamespace
 
 namespace FilterDataGrid
 {
-    public class StringFormatConverter : IMultiValueConverter
+    public class StringFormatConverter : IValueConverter, IMultiValueConverter
     {
+        #region ValueConverter
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return $"{value}";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+
+        #endregion ValueConverter
+
+        #region MultiValueConverter
+
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             try
@@ -32,7 +51,11 @@ namespace FilterDataGrid
 
                 var stringFormat = values[0].ToString();
 
-                return string.Format(stringFormat, values.ToArray().Skip(1).ToArray());
+                // the last item of values array is culture
+                if (parameter != null && parameter.Equals("Culture"))
+                    culture = values.LastOrDefault() != null ? (CultureInfo)values.Last() : culture;
+
+                return string.Format(culture, stringFormat, values.Skip(1).ToArray());
             }
             catch (FormatException ex)
             {
@@ -45,5 +68,7 @@ namespace FilterDataGrid
         {
             throw new NotSupportedException();
         }
+
+        #endregion MultiValueConverter
     }
 }

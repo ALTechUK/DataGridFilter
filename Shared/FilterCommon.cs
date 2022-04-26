@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable InvalidXmlDocComment
 // ReSharper disable TooManyChainedReferences
 // ReSharper disable ExcessiveIndentation
@@ -28,11 +29,18 @@ namespace FilterDataGrid
 {
     public sealed class FilterCommon : NotifyProperty
     {
+        #region Private Fields
+
+        private bool isFiltered;
+
+        #endregion Private Fields
+
         #region Public Constructors
 
         public FilterCommon()
         {
             PreviouslyFilteredItems = new HashSet<object>(EqualityComparer<object>.Default);
+            IsFiltered = false;
         }
 
         #endregion Public Constructors
@@ -41,7 +49,17 @@ namespace FilterDataGrid
 
         public string FieldName { get; set; }
         public Type FieldType { get; set; }
-        public bool IsFiltered { get; set; }
+
+        public bool IsFiltered
+        {
+            get => isFiltered;
+            set
+            {
+                isFiltered = value;
+                OnPropertyChanged("IsFiltered");
+            }
+        }
+
         public HashSet<object> PreviouslyFilteredItems { get; set; }
 
         // Treeview
@@ -136,7 +154,10 @@ namespace FilterDataGrid
             // predicate of filter
             bool Predicate(object o)
             {
-                var value = o.GetType().GetProperty(FieldName)?.GetValue(o, null);
+                var value = FieldType == typeof(DateTime)
+                    ? ((DateTime?)o.GetType().GetProperty(FieldName)?.GetValue(o, null))?.Date
+                    : o.GetType().GetProperty(FieldName)?.GetValue(o, null);
+
                 return !PreviouslyFilteredItems.Contains(value);
             }
 
@@ -314,13 +335,13 @@ namespace FilterDataGrid
                             select new FilterItem
                             {
                                 Content = new DateTime((int)y.Content, (int)m.Content, (int)d.Content),
-                                IsChecked = d.IsChecked ?? false,
+                                IsChecked = d.IsChecked ?? false
                             });
                     else // null date (Level -1)
                         filterCommon.Add(new FilterItem
                         {
                             Content = null,
-                            IsChecked = y.IsChecked ?? false,
+                            IsChecked = y.IsChecked ?? false
                         });
             }
             catch (Exception ex)

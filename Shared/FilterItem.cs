@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable ConvertToAutoPropertyWhenPossible
@@ -60,6 +61,12 @@ namespace FilterDataGrid
         /// Raw value of the item (not displayed, see Label property)
         /// </summary>
         public object Content { get; set; }
+
+        /// <summary>
+        /// Content length
+        /// </summary>
+        public int ContentLength { get; set; }
+
 
         /// <summary>
         /// Current filter
