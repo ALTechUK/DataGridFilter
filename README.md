@@ -6,12 +6,7 @@ https://shields.io/category/version
 -->
 # WPF Filterable DataGrid, multi language
 
-<!--
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/macgile/DataGridFilter)
--->
-
-![Nuget package](https://img.shields.io/nuget/v/FilterDataGrid)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/macgile/DataGridFilter?include_prereleases)  
+Originally taken from https://github.com/macgile/DataGridFilter
 
 ![datagrid image demo](FilterDataGrid.png)  
 
@@ -23,17 +18,9 @@ Translation of labels and formatting of dates in the following languages: **Chin
  > *The translations are from google translate, if you find any errors or want to add other languages, please let me know.*
 
 
-The **Nuget package** is available [here](https://www.nuget.org/packages/FilterDataGrid/).
-
 To understand how the filter works, you can consult the article posted on [CodeProject](https://www.codeproject.com/Articles/5292782/WPF-DataGrid-Filterable-multi-language).
 
 ## How to use
-
-- There are two ways to install :
-
-- NuGet command : **Install-Package FilterDataGrid**
-
-- Or manually add **FilterDataGrid.dll** as reference in your project
 
 - Add **Namespace** into your xaml :  
 
